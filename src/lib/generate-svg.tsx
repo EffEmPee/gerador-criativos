@@ -1,14 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 import fs from "fs";
+import path from "path";
 import satori from "satori";
 
-const interB = fs.readFileSync("./public/fonts/inter_b.ttf");
-const interM = fs.readFileSync("./public/fonts/inter_m.ttf");
-const feedBuffer = fs.readFileSync("./public/template-feed.png");
+const interB = fs.readFileSync(
+  path.resolve(process.cwd(), "public/fonts/inter_b.ttf")
+);
+const interM = fs.readFileSync(
+  path.resolve(process.cwd(), "public/fonts/inter_m.ttf")
+);
+const feedBuffer = fs.readFileSync(
+  path.resolve(process.cwd(), "public/template-feed.png")
+);
+const storyBuffer = fs.readFileSync(
+  path.resolve(process.cwd(), "public/template-story.png")
+);
+
+// const feedBuffer = fs.readFileSync("./public/template-feed.png");
 const feed64 = feedBuffer.toString("base64");
-const storyBuffer = fs.readFileSync("./public/template-story.png");
+// const storyBuffer = fs.readFileSync("./public/template-story.png");
 const story64 = storyBuffer.toString("base64");
+
+// const fontPromise = fetch(new URL('../../styles/opensans.ttf', import.meta.url)).then(
+//   (res) => res.arrayBuffer(),
+// );
 
 const fonts = [
   {
@@ -135,8 +151,6 @@ export async function generateImageFeed({
       </div>
     </div>
   );
-
-  console.log("teste");
 
   const svg = await satori(htmlFeed, {
     width: 1080,
