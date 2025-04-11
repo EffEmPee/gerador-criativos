@@ -1,103 +1,141 @@
-import Image from "next/image";
+"use client";
+import { CarInfoT } from "@/lib/generate-svg";
+import JSZip from "jszip";
+import { useCallback, useState } from "react";
+
+const statusMessage = {
+  "": "Insira as URL's",
+  gerar: "Clique para gerar as imagens",
+  carregando: "Obtendo detalhes...",
+  gerando: "Gerando imagens...",
+  completo: "Imagens disponíveis",
+  erro: "Ocorreu um erro",
+  invalido: "As URL's não são válidas",
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [links, setLinks] = useState("");
+  const [zipUrl, setZipUrl] = useState("");
+  const [status, setStatus] = useState<
+    "" | "gerar" | "carregando" | "gerando" | "completo" | "erro" | "invalido"
+  >("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
+  const handleGenerateFromLinks = useCallback(async () => {
+    const zip = new JSZip();
+
+    const linksArray = links
+      .split(/\r?\n|\r|\n/g)
+      .map((link) => link.trim())
+      .filter((link) => link);
+
+    for (const l of linksArray) {
+      console.log(l);
+      if (!l.startsWith("https://www.geracaoseminovos.com.br")) {
+        setStatus("invalido");
+        return;
+      }
+    }
+
+    setStatus("carregando");
+
+    try {
+      const carInfos: CarInfoT[] = await Promise.all(
+        linksArray.map(async (link, i) => {
+          const res = await fetch(
+            "/api/car-info?" +
+              new URLSearchParams({
+                url: link,
+              })
+          );
+          const data = await res.json();
+          return { _id: i, ...data };
+        })
+      );
+
+      setStatus("gerando");
+
+      await Promise.all(
+        carInfos.map(async (infos) => {
+          const resS = await fetch(
+            "/api/generate/story?" +
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              new URLSearchParams(infos as any)
+          );
+          const blobS = await resS.blob();
+          zip.file(
+            `${infos._id}-${infos.model
+              .toLowerCase()
+              .replaceAll(" ", "-")}-story.png`,
+            blobS
+          );
+
+          const resF = await fetch(
+            "/api/generate/feed?" +
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              new URLSearchParams(infos as any)
+          );
+          const blobF = await resF.blob();
+          zip.file(
+            `${infos._id}-${infos.model
+              .toLowerCase()
+              .replaceAll(" ", "-")}-feed.png`,
+            blobF
+          );
+        })
+      );
+    } catch {
+      setStatus("erro");
+      return;
+    }
+
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    setZipUrl(URL.createObjectURL(zipBlob));
+    setStatus("completo");
+  }, [links]);
+
+  return (
+    <div className="bg-white w-full flex flex-col min-h-svh text-black p-12">
+      <h1 className="font-semibold text-2xl">
+        Insira URL&apos;s separadas em cada linha
+      </h1>
+      <div className="flex p-2 text-gray-700 text-sm gap-2">
+        <span>Ex:</span>
+        <p>
+          https://www.geracaoseminovos.com.br/seminovos/...<br></br>
+          https://www.geracaoseminovos.com.br/seminovos/...
+        </p>
+      </div>
+      <textarea
+        value={links}
+        onChange={(t) => {
+          setStatus(t.target.value.length == 0 ? "" : "gerar");
+          setLinks(t.target.value);
+        }}
+        className="w-full md:w-2/3 max-w-2xl  min-h-[30vh] max-h-[30vh] p-3 resize-none text-black border-2 border-black rounded-xl"
+      />
+      <div className="flex justify-start gap-5 items-center w-full md:w-2/3  max-w-2xl mt-5">
+        <button
+          className="py-2 px-4 bg-black text-white font-bold rounded-lg cursor-pointer"
+          onClick={handleGenerateFromLinks}
+        >
+          Gerar imagens
+        </button>
+        {status == "completo" && (
           <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            className="py-2 px-4 bg-black text-white font-bold rounded-lg cursor-pointer"
+            href={zipUrl}
+            download="imagens.zip"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
+            Baixar
           </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        )}
+        <span
+          style={{ color: ["erro", "invalido"].includes(status) ? "red" : "" }}
+          className="text-gray-700 font-bold ml-auto"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {statusMessage[status]}
+        </span>
+      </div>
     </div>
   );
 }
