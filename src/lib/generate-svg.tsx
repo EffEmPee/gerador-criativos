@@ -5,7 +5,7 @@ import satori from "satori";
 
 const inter = fs.readFileSync("./public/fonts/inter.ttf");
 const interB = fs.readFileSync("./public/fonts/inter_b.ttf");
-const interM = fs.readFileSync("./public/fonts/inter_M.ttf");
+const interM = fs.readFileSync("./public/fonts/inter_m.ttf");
 const feedBuffer = fs.readFileSync("./public/template-feed.png");
 const feed64 = feedBuffer.toString("base64");
 const storyBuffer = fs.readFileSync("./public/template-story.png");
