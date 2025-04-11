@@ -3,7 +3,6 @@
 import fs from "fs";
 import satori from "satori";
 
-const inter = fs.readFileSync("./public/fonts/inter.ttf");
 const interB = fs.readFileSync("./public/fonts/inter_b.ttf");
 const interM = fs.readFileSync("./public/fonts/inter_m.ttf");
 const feedBuffer = fs.readFileSync("./public/template-feed.png");
@@ -12,11 +11,6 @@ const storyBuffer = fs.readFileSync("./public/template-story.png");
 const story64 = storyBuffer.toString("base64");
 
 const fonts = [
-  {
-    name: "Inter",
-    data: inter,
-    weight: 400 as any,
-  },
   {
     name: "Inter",
     data: interM,
@@ -141,6 +135,8 @@ export async function generateImageFeed({
       </div>
     </div>
   );
+
+  console.log("teste");
 
   const svg = await satori(htmlFeed, {
     width: 1080,

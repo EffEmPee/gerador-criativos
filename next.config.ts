@@ -1,16 +1,21 @@
-import type { NextConfig } from "next";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// next.config.js
+const nextConfig = {
+  webpack: (config:any) => {
+    config.module.rules.push(
+      {
+        test: /\.node$/,
+        use: [
+          {
+            loader: 'nextjs-node-loader',
+          },
+        ],
+      },
+    );
 
-const nextConfig: NextConfig = {
-  /* config options here */
-  webpack(config, { isServer }) {
-    if (isServer) {
-      config.externals.push('@napi-rs/image');
-    }
     return config;
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@napi-rs/image'],
-  },
+  serverExternalPackages: ["@resvg/resvg-js"],
 };
 
-export default nextConfig;
+module.exports = nextConfig;

@@ -11,6 +11,7 @@
   "dependencies": {
     "@napi-rs/image": "^1.9.2",
     "@resvg/resvg-js": "^2.6.2",
+    "@resvg/resvg-js-darwin-arm64": "^2.6.2",
     "@resvg/resvg-wasm": "^2.6.2",
     "cheerio": "^1.0.0",
     "jszip": "^3.10.1",
@@ -27,6 +28,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
+    "nextjs-node-loader": "^1.1.9",
+    "node-loader": "^2.1.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

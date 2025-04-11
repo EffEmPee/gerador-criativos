@@ -3,15 +3,16 @@ import {
   generateImageStory,
   generateImageFeed,
 } from "@/lib/generate-svg";
-const { Transformer } = await import("@napi-rs/image");
+// const { Transformer } = await import("@napi-rs/image");
+import { Resvg } from "@resvg/resvg-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  response: NextResponse,
-  { params }: { params: { mode: string } }
+  { params }: { params: Promise<{ mode: string }> }
 ) {
   const searchParams = new URLSearchParams(request.nextUrl.searchParams);
+  const mode = (await params).mode;
 
   const carInfo: CarInfoT = {
     year: searchParams.get("year") || "",
@@ -26,35 +27,22 @@ export async function GET(
   };
 
   const svg =
-    params.mode == "story"
+    mode == "story"
       ? await generateImageStory(carInfo)
       : await generateImageFeed(carInfo);
 
-  // console.log(svg);
+  const resvg = new Resvg(svg, {
+    fitTo: {
+      mode: "width",
+      value: 1080,
+    },
+  });
 
-  // const url = (await renderPNG?.({
-  //   svg: svg,
-  //   width: 1080,
-  // })) as string;
-
-  // const pngBuffer = new Resvg(Buffer.from(svg)).render().asPng();
-
-  // const pngBuffer = await Transformer.fromSvg(svg).png();
-
-  // return NextResponse.json({ image: url });
-
-  const pngBuffer = await Transformer.fromSvg(svg).png();
+  const pngBuffer = resvg.render().asPng();
 
   return new NextResponse(pngBuffer, {
     headers: {
       "Content-Type": "image/png",
     },
   });
-
-  // return new NextResponse(pngBuffer, {
-  //   headers: {
-  //     "Content-Type": "image/png",
-  //     "Content-Length": pngBuffer.length.toString(),
-  //   },
-  // });
 }
