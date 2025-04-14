@@ -48,6 +48,7 @@ export type CarInfoT = {
   gear: string;
   price: number;
   bannerUrl: string;
+  images?: any;
 };
 
 export async function generateImageFeed({

@@ -11,6 +11,13 @@ export async function GET(request: NextRequest) {
 
   // const rawHtml = fetch(carUrl).then(async res => await res.text()).catch(err => console.log("Error fetching car info", err));
   // console.log($("meta[name*=auto_layer_vehicle]").map((i, meta) => $(meta).attr('content')).toArray());
+  const images: string[] = [];
+  $("*[data-photo-id]").each((i, el) => {
+    if (!images[Number($(el).attr("data-photo-id"))]) {
+      images.push($(el).find("img").attr("data-splide-lazy") || "");
+    }
+  });
+  console.log(images);
   const carInfo: CarInfoT = {
     year: $("meta[name*=auto_layer_vehicle_year]").attr("content") || "",
     model: $("meta[name*=auto_layer_vehicle_model]").attr("content") || "",
@@ -24,6 +31,7 @@ export async function GET(request: NextRequest) {
         .replace(",", ".")
     ),
     bannerUrl: $("meta[property=og:image]").attr("content") || "",
+    images,
   };
 
   return Response.json(carInfo);
