@@ -56,16 +56,15 @@ export default function Home() {
 
       await Promise.all(
         carInfos.map(async (infos) => {
+          const folder = zip.folder(`${infos._id}-${infos.model}`) as JSZip;
           const resS = await fetch(
             "/api/generate/story?" +
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               new URLSearchParams(infos as any)
           );
           const blobS = await resS.blob();
-          zip.file(
-            `${infos._id}-${infos.model
-              .toLowerCase()
-              .replaceAll(" ", "-")}-story.png`,
+          folder.file(
+            `${infos.model.toLowerCase().replaceAll(" ", "-")}-story.png`,
             blobS
           );
 
@@ -75,12 +74,26 @@ export default function Home() {
               new URLSearchParams(infos as any)
           );
           const blobF = await resF.blob();
-          zip.file(
-            `${infos._id}-${infos.model
-              .toLowerCase()
-              .replaceAll(" ", "-")}-feed.png`,
+          folder.file(
+            `${infos.model.toLowerCase().replaceAll(" ", "-")}-feed.png`,
             blobF
           );
+
+          if (infos.images) {
+            await Promise.all(
+              infos.images.map(async (img_url, i) => {
+                const res = await fetch(img_url);
+                const blob = await res.blob();
+                folder.file(
+                  `${infos.model.toLowerCase().replaceAll(" ", "-")}-${i}.png`,
+                  blob
+                );
+              })
+            );
+          } else {
+            setStatus("erro");
+            throw new Error();
+          }
         })
       );
     } catch {
