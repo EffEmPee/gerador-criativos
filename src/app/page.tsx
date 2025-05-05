@@ -30,7 +30,10 @@ export default function Home() {
 
     for (const l of linksArray) {
       console.log(l);
-      if (!l.startsWith("https://www.geracaoseminovos.com.br")) {
+      if (
+        !l.startsWith("https://www.geracaoseminovos.com.br") &&
+        !l.startsWith("https://grupo-geracao.autodromo.app/")
+      ) {
         setStatus("invalido");
         return;
       }
