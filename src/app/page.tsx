@@ -32,7 +32,8 @@ export default function Home() {
       console.log(l);
       if (
         !l.startsWith("https://www.geracaoseminovos.com.br") &&
-        !l.startsWith("https://grupo-geracao.autodromo.app/")
+        !l.startsWith("https://grupo-geracao.autodromo.app/") &&
+        !l.startsWith("https://www.geracaomotosseminovas.com.br")
       ) {
         setStatus("invalido");
         return;
